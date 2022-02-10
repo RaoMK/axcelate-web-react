@@ -8,7 +8,7 @@ import Icon from "@material-tailwind/react/Icon";
 import { useRef } from "react";
 import { useSelector } from "react-redux";
 
-export default function HoldingTable({ data, onRefresh }) {
+export default function HoldingTable({ data, onRefresh, onEdit, onDelete }) {
   const lableRef = useRef();
   const currentUser = useSelector((state) => state.user.currentUser);
   return (
@@ -65,6 +65,13 @@ export default function HoldingTable({ data, onRefresh }) {
                 <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-center">
                   P/L
                 </th>
+                {currentUser?.role === 1 ? (
+                  <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-left">
+                    Actions
+                  </th>
+                ) : (
+                  ""
+                )}
               </tr>
             </thead>
             <tbody>
@@ -72,7 +79,7 @@ export default function HoldingTable({ data, onRefresh }) {
                 <div className=" align-middle justify-center items-center "></div>
               ) : (
                 data.map((item) => (
-                  <tr>
+                  <tr key={item._id}>
                     <th className="border-b border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-left">
                       {item.portfolio_account_number}
                     </th>
@@ -96,8 +103,50 @@ export default function HoldingTable({ data, onRefresh }) {
                       {item.net_change}
                     </td>
                     <td className="border-b border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
-                      {item.p_l}
+                      {item.profit_and_loss}
                     </td>
+                    {currentUser?.role === 1 ? (
+                      <td className=" flex space-x-2 border-b cursor-pointer border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
+                        {/* <Button
+                        className="self-center justify-self-center"
+                        color="green"
+                        buttonType="filled"
+                        size="regular"
+                        rounded={true}
+                        block={false}
+                        iconOnly={true}
+                        ripple="light"
+                        ref={lableRef}
+                        onClick={() => onEdit(item)}
+                      >
+                        <Icon name="edit" />
+                      </Button>
+
+                      <Tooltips placement="top" ref={lableRef}>
+                        <TooltipsContent>Edit</TooltipsContent>
+                      </Tooltips> */}
+
+                        <Button
+                          className="self-center justify-self-center"
+                          color="red"
+                          buttonType="filled"
+                          size="regular"
+                          rounded={true}
+                          block={false}
+                          iconOnly={true}
+                          ripple="light"
+                          ref={lableRef}
+                          onClick={() => onDelete(item)}
+                        >
+                          <Icon name="delete" />
+                        </Button>
+                        <Tooltips placement="top" ref={lableRef}>
+                          <TooltipsContent>Delete</TooltipsContent>
+                        </Tooltips>
+                      </td>
+                    ) : (
+                      ""
+                    )}
                   </tr>
                 ))
               )}

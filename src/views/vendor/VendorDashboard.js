@@ -1,17 +1,30 @@
+import React from "react";
 import ChartLine from "components/ChartLine";
 import ChartBar from "components/ChartBar";
 import VendorTopStats from "./components/VendorTopStats";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import HoldingTable from "./components/HoldingTable";
 import { fetchUserAction } from "redux/actions/authActions";
+import { getHoldings } from "api";
 
 export default function VendorDashboard() {
-  const dispatch = useDispatch();
+  const [holding, setHolding] = React.useState([]);
   const currentUser = useSelector((state) => state.user.currentUser);
+  const auth = useSelector((state) => state.user.authenticated);
 
-  useEffect(() => {}, []);
+  const handleFetchHolding = async (id) => {
+    try {
+      const { data } = await getHoldings(id);
+      console.log(data);
+      setHolding(data?.holding);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    handleFetchHolding(auth._id);
+  }, []);
+
   return (
     <>
       <div className="bg-light-blue-500 px-3 md:px-8 " />
@@ -30,8 +43,8 @@ export default function VendorDashboard() {
           </div>
         </div>
         <HoldingTable
-          onRefresh={() => dispatch(fetchUserAction)}
-          data={currentUser?.holding}
+          onRefresh={() => handleFetchHolding(auth?._id)}
+          data={holding}
         />
       </div>
     </>

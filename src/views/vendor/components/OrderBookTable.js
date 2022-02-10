@@ -11,7 +11,7 @@ import Icon from "@material-tailwind/react/Icon";
 import { useRef } from "react";
 import { useSelector } from "react-redux";
 
-export default function OrderBookTable({ data, onRefresh }) {
+export default function OrderBookTable({ data, onRefresh, onDelete, onEdit }) {
   const lableRef = useRef();
   const currentUser = useSelector((state) => state.user.currentUser);
 
@@ -138,9 +138,13 @@ export default function OrderBookTable({ data, onRefresh }) {
                 <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-center">
                   Time
                 </th>
-                {/* <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-center">
-                  Action
-                </th> */}
+                {currentUser?.role === 1 ? (
+                  <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-left">
+                    Actions
+                  </th>
+                ) : (
+                  ""
+                )}
               </tr>
             </thead>
             <tbody>
@@ -180,24 +184,48 @@ export default function OrderBookTable({ data, onRefresh }) {
                     <td className="border-b border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
                       {item.time}
                     </td>
-                    {/* <td className="border-b border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
-                    <Button
-                      className="ml-2"
-                      color="green"
-                      buttonType="filled"
-                      size="regular"
-                      rounded={true}
-                      block={false}
-                      iconOnly={true}
-                      ripple="light"
-                      ref={lableRef}
-                    >
-                      <Icon name="storefront" />
-                    </Button>
-                    <Tooltips placement="top" ref={lableRef}>
-                      <TooltipsContent>Sell</TooltipsContent>
-                    </Tooltips>
-                  </td> */}
+                    {currentUser?.role === 1 ? (
+                      <td className=" flex space-x-2 border-b cursor-pointer border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
+                        {/* <Button
+                        className="self-center justify-self-center"
+                        color="green"
+                        buttonType="filled"
+                        size="regular"
+                        rounded={true}
+                        block={false}
+                        iconOnly={true}
+                        ripple="light"
+                        ref={lableRef}
+                        onClick={() => onEdit(item)}
+                      >
+                        <Icon name="edit" />
+                      </Button>
+
+                      <Tooltips placement="top" ref={lableRef}>
+                        <TooltipsContent>Edit</TooltipsContent>
+                      </Tooltips> */}
+
+                        <Button
+                          className="self-center justify-self-center"
+                          color="red"
+                          buttonType="filled"
+                          size="regular"
+                          rounded={true}
+                          block={false}
+                          iconOnly={true}
+                          ripple="light"
+                          ref={lableRef}
+                          onClick={() => onDelete(item)}
+                        >
+                          <Icon name="delete" />
+                        </Button>
+                        <Tooltips placement="top" ref={lableRef}>
+                          <TooltipsContent>Delete</TooltipsContent>
+                        </Tooltips>
+                      </td>
+                    ) : (
+                      ""
+                    )}
                   </tr>
                 ))
               )}

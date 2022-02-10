@@ -6,31 +6,50 @@ import Input from "@material-tailwind/react/Input";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-import { fetchUser } from "api";
+
 import HoldingTable from "views/vendor/components/HoldingTable";
 import OrderBookTable from "../vendor/components/OrderBookTable";
 import TradeBookTable from "views/vendor/components/TradeBookTable";
 import LedgerTable from "views/vendor/components/LedgerTable";
-import { addDashboardStats } from "api";
-import { addHolding } from "api";
-import { addOrderbook } from "api";
-import { addTradebook } from "api";
-import { addLedger } from "api";
-import { addLedgerData } from "api";
+
+import {
+  addDashboardStats,
+  fetchUser,
+  createHolding,
+  addLedgerData,
+  getHoldings,
+  removeHolding,
+  createTradebook,
+  getTradebook,
+  deleteTradebook,
+  createOrderbook,
+  getOrderbook,
+  deleteOrderbook,
+  createLedger,
+  getLedger,
+  updateLedger,
+} from "api";
+import { addFundStats } from "api";
+import { deleteLedger } from "api";
 
 export default function ManageUserData() {
   const { location } = useHistory();
   const user = location.state.item;
+  const [edit, setEdit] = useState(false);
   const [userData, setUserData] = useState({});
-
   const [loading, setLoading] = useState(false);
-
   const [dashboard, setDashboard] = useState({
     equity_invetment: userData?.dashboard?.equity_invetment,
-    current_portfolio: "",
-    net_change: "",
-    portfolio_yield: "",
-    capital_gain: "",
+    current_portfolio: userData?.dashboard?.current_portfolio,
+    net_change: userData?.dashboard?.net_change,
+    portfolio_yield: userData?.dashboard?.portfolio_yield,
+    capital_gain: userData?.dashboard?.capital_gain,
+  });
+  const [funds, setFunds] = useState({
+    capital_invetment: user?.fundstats?.capital_invetment,
+    capital_to_trade: user?.fundstats?.capital_to_trade,
+    margin_available: user?.fundstats?.margin_available,
+    total_holding_value: user?.fundstats?.total_holding_value,
   });
   const [holding, setHolding] = useState({
     portfolio_account_number: "",
@@ -40,7 +59,8 @@ export default function ManageUserData() {
     buy_price: "",
     ltp: "",
     net_change: "",
-    p_l: "",
+    profit_and_loss: "",
+    user: user._id,
   });
 
   const [orderbook, setOrderbook] = useState({
@@ -54,6 +74,7 @@ export default function ManageUserData() {
     status: "",
     order_id: "",
     time: "",
+    user: user._id,
   });
 
   const [tradebook, setTradebook] = useState({
@@ -61,11 +82,12 @@ export default function ManageUserData() {
     segment: "",
     exchange: "",
     scrip: "",
-    rate: "",
+    buying_price: "",
+    selling_price: "",
     trade_time: "",
-    product: "",
     tradeable_value: "",
-    txn_chngs: "",
+    capital_gains: "",
+    user: user._id,
   });
 
   const [ledgerStatic, setLedgerStatic] = useState({
@@ -81,6 +103,7 @@ export default function ManageUserData() {
     debit: "",
     credit: "",
     balance: "",
+    user: user._id,
   });
 
   const fetchUserData = async (id) => {
@@ -95,42 +118,58 @@ export default function ManageUserData() {
       console.log(error);
     }
   };
-  console.log(userData, "hey iiisssdata");
 
-  const handleAddDashboardStats = async () => {
+  const handleAddDashboardStats = async (e) => {
     try {
-      const response = await addDashboardStats({
+      await addDashboardStats({
         id: user._id,
         data: dashboard,
       });
-      console.log(response);
+
       fetchUserData(user._id);
       toast.success("Successfully Added Data");
     } catch (error) {
       console.log(error);
     }
   };
-  const handleAddLedgerData = async () => {
+  const handelAddFundStats = async (e) => {
     try {
-      const response = await addLedgerData({
+      await addFundStats({
+        id: user._id,
+        data: funds,
+      });
+
+      fetchUserData(user._id);
+      toast.success("Successfully Added Data");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleAddLedgerData = async (e) => {
+    try {
+      await addLedgerData({
         id: user._id,
         data: ledgerStatic,
       });
-      console.log(response);
+
       fetchUserData(user._id);
       toast.success("Successfully Added Data");
     } catch (error) {
       console.log(error);
     }
   };
-  const handleAddHolding = async () => {
+
+  useEffect(() => {
+    fetchUserData(user._id);
+  }, []);
+
+  /// holding
+  const [holdingData, setHoldingData] = useState([]);
+
+  const handleAddHolding = async (e) => {
     try {
-      const response = await addHolding({
-        id: user._id,
-        data: { data: holding },
-      });
-      console.log(response);
-      fetchUserData(user._id);
+      await createHolding(holding);
+
       setHolding({
         portfolio_account_number: "",
         segment: "",
@@ -139,21 +178,62 @@ export default function ManageUserData() {
         buy_price: "",
         ltp: "",
         net_change: "",
-        p_l: "",
+        profit_and_loss: "",
+        user: user._id,
       });
+      handleFetchHolding(user?._id);
       toast.success("Successfully Added Data");
     } catch (error) {
       console.log(error);
     }
   };
-  const handleAddOrderbook = async () => {
+
+  const handleFetchHolding = async (id) => {
     try {
-      const response = await addOrderbook({
-        id: user._id,
-        data: { data: orderbook },
+      const { data } = await getHoldings(id);
+
+      setHoldingData(data?.holding);
+    } catch (error) {}
+  };
+
+  /// tradebook
+  const [tradebookData, setTradebookData] = useState([]);
+
+  const handleAddTradebook = async (e) => {
+    try {
+      await createTradebook(tradebook);
+      setTradebook({
+        trade_id: "",
+        segment: "",
+        exchange: "",
+        scrip: "",
+        buying_price: "",
+        selling_price: "",
+        trade_time: "",
+        tradeable_value: "",
+        capital_gains: "",
+        user: user._id,
       });
-      console.log(response);
-      fetchUserData(user._id);
+      handleFetchTradebook(user?._id);
+      toast.success("Successfully Added Data");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleFetchTradebook = async (id) => {
+    try {
+      const { data } = await getTradebook(id);
+
+      setTradebookData(data?.tradebook);
+    } catch (error) {}
+  };
+  /// orderbook
+  const [orderbookData, setOrderbookData] = useState([]);
+
+  const handleAddOrderbook = async (e) => {
+    try {
+      await createOrderbook(orderbook);
       setOrderbook({
         exchange: "",
         segment: "",
@@ -165,44 +245,29 @@ export default function ManageUserData() {
         status: "",
         order_id: "",
         time: "",
+        user: user._id,
       });
+      handleFetchOrderbook(user?._id);
       toast.success("Successfully Added Data");
     } catch (error) {
       console.log(error);
     }
   };
-  const handleAddTradebook = async () => {
+
+  const handleFetchOrderbook = async (id) => {
     try {
-      const response = await addTradebook({
-        id: user._id,
-        data: { data: tradebook },
-      });
-      console.log(response);
-      fetchUserData(user._id);
-      setTradebook({
-        trade_id: "",
-        segment: "",
-        exchange: "",
-        scrip: "",
-        rate: "",
-        trade_time: "",
-        product: "",
-        tradeable_value: "",
-        txn_chngs: "",
-      });
-      toast.success("Successfully Added Data");
-    } catch (error) {
-      console.log(error);
-    }
+      const { data } = await getOrderbook(id);
+
+      setOrderbookData(data?.orderbook);
+    } catch (error) {}
   };
-  const handleAddLedger = async () => {
+
+  /// ledgerbook
+  const [ledgerData, setLedgerData] = useState([]);
+
+  const handleAddLedger = async (e) => {
     try {
-      const response = await addLedger({
-        id: user._id,
-        data: { data: ledger },
-      });
-      console.log(response);
-      fetchUserData(user._id);
+      await createLedger(ledger);
       setLedger({
         date: "",
         particular: "",
@@ -210,15 +275,28 @@ export default function ManageUserData() {
         debit: "",
         credit: "",
         balance: "",
+        user: user._id,
       });
+      handleFetchLedger(user?._id);
       toast.success("Successfully Added Data");
     } catch (error) {
       console.log(error);
     }
   };
 
+  const handleFetchLedger = async (id) => {
+    try {
+      const { data } = await getLedger(id);
+
+      setLedgerData(data?.ledger);
+    } catch (error) {}
+  };
+
   useEffect(() => {
-    fetchUserData(user._id);
+    handleFetchHolding(user?._id);
+    handleFetchTradebook(user?.id);
+    handleFetchOrderbook(user?.id);
+    handleFetchLedger(user?._id);
   }, []);
 
   if (loading) {
@@ -247,7 +325,7 @@ export default function ManageUserData() {
                       <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
                         <Input
                           value={dashboard.equity_invetment}
-                          type=""
+                          type="text"
                           color="purple"
                           placeholder="Equity Ivestment"
                           onChange={(e) =>
@@ -288,7 +366,7 @@ export default function ManageUserData() {
                       </div>
                       <div className="w-full lg:w-6/12 pl-4 mb-10 font-light">
                         <Input
-                          type="number"
+                          type="text"
                           value={dashboard.portfolio_yield}
                           color="purple"
                           placeholder="Portfolio Yield"
@@ -426,11 +504,14 @@ export default function ManageUserData() {
                       <div className="w-full lg:w-6/12 pl-4 mb-10 font-light">
                         <Input
                           type="text"
-                          value={holding.p_l}
+                          value={holding.profit_and_loss}
                           color="purple"
                           placeholder="P/L"
                           onChange={(e) =>
-                            setHolding({ ...holding, p_l: e.target.value })
+                            setHolding({
+                              ...holding,
+                              profit_and_loss: e.target.value,
+                            })
                           }
                         />
                       </div>
@@ -449,9 +530,92 @@ export default function ManageUserData() {
                         </Button>
                       </div>
                       <HoldingTable
-                        onRefresh={() => fetchUserData(user._id)}
-                        data={userData?.holding}
+                        onRefresh={() => handleFetchHolding(user._id)}
+                        data={holdingData}
+                        onDelete={(item) => {
+                          try {
+                            removeHolding(item._id);
+                            toast.success("Successfully Removed");
+                            handleFetchHolding(user._id);
+                          } catch (error) {}
+                        }}
                       />
+                    </div>
+                    <h6 className="text-purple-500 text-xl mt-3 mb-6 font uppercase">
+                      Fund Stats Details
+                    </h6>
+                    <div className="flex flex-wrap mt-10">
+                      <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
+                        <Input
+                          value={funds.capital_invetment}
+                          type="text"
+                          color="purple"
+                          placeholder="Capital Investment"
+                          onChange={(e) =>
+                            setFunds({
+                              ...funds,
+                              capital_invetment: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="w-full lg:w-6/12 pl-4 mb-10 font-light">
+                        <Input
+                          type="text"
+                          value={funds.capital_to_trade}
+                          color="purple"
+                          placeholder="Capital To Trade"
+                          onChange={(e) =>
+                            setFunds({
+                              ...funds,
+                              capital_to_trade: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
+                        <Input
+                          value={funds.margin_available}
+                          type="text"
+                          color="purple"
+                          placeholder="Margin Available"
+                          onChange={(e) =>
+                            setFunds({
+                              ...funds,
+                              margin_available: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="w-full lg:w-6/12 pl-4 mb-10 font-light">
+                        <Input
+                          type="text"
+                          value={funds.total_holding_value}
+                          color="purple"
+                          placeholder="Total Holding Value"
+                          onChange={(e) =>
+                            setFunds({
+                              ...funds,
+                              total_holding_value: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
+                        <Button
+                          color="lightBlue"
+                          buttonType="filled"
+                          size="lg"
+                          rounded={false}
+                          block={true}
+                          iconOnly={false}
+                          ripple="light"
+                          onClick={handelAddFundStats}
+                        >
+                          Save
+                        </Button>
+                      </div>
                     </div>
                     <h6 className="text-purple-500 text-xl mt-3 mb-6 font uppercase">
                       Order Book Details
@@ -460,7 +624,7 @@ export default function ManageUserData() {
                       <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
                         <Input
                           value={orderbook.exchange}
-                          type=""
+                          type="text"
                           color="purple"
                           placeholder="Exchange"
                           onChange={(e) =>
@@ -600,8 +764,15 @@ export default function ManageUserData() {
                         </Button>
                       </div>
                       <OrderBookTable
-                        onRefresh={() => fetchUserData(user._id)}
-                        data={userData?.orderbook}
+                        onRefresh={() => handleFetchOrderbook(user._id)}
+                        data={orderbookData}
+                        onDelete={(item) => {
+                          try {
+                            deleteOrderbook(item._id);
+                            toast.success("Successfully Removed");
+                            handleFetchOrderbook(user._id);
+                          } catch (error) {}
+                        }}
                       />
                     </div>
 
@@ -667,39 +838,42 @@ export default function ManageUserData() {
                       </div>
                       <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
                         <Input
-                          value={tradebook.rate}
+                          value={tradebook.buying_price}
                           type="text"
                           color="purple"
-                          placeholder="Rate"
+                          placeholder="Buying Price"
                           onChange={(e) =>
-                            setTradebook({ ...tradebook, rate: e.target.value })
+                            setTradebook({
+                              ...tradebook,
+                              buying_price: e.target.value,
+                            })
                           }
                         />
                       </div>
                       <div className="w-full lg:w-6/12 pl-4 mb-10 font-light">
                         <Input
                           type="text"
-                          value={tradebook.trade_time}
+                          value={tradebook.selling_price}
                           color="purple"
-                          placeholder="Trade Time"
+                          placeholder="Selling Price"
                           onChange={(e) =>
                             setTradebook({
                               ...tradebook,
-                              trade_time: e.target.value,
+                              selling_price: e.target.value,
                             })
                           }
                         />
                       </div>
                       <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
                         <Input
-                          value={tradebook.product}
+                          value={tradebook.trade_time}
                           type="text"
                           color="purple"
-                          placeholder="Product"
+                          placeholder="Trade Time"
                           onChange={(e) =>
                             setTradebook({
                               ...tradebook,
-                              product: e.target.value,
+                              trade_time: e.target.value,
                             })
                           }
                         />
@@ -720,14 +894,14 @@ export default function ManageUserData() {
                       </div>
                       <div className="w-full lg:w-6/12 pr-4 mb-10 font-light">
                         <Input
-                          value={tradebook.txn_chngs}
+                          value={tradebook.capital_gains}
                           type="text"
                           color="purple"
-                          placeholder="Txn Chngs"
+                          placeholder="Capital Gains"
                           onChange={(e) =>
                             setTradebook({
                               ...tradebook,
-                              txn_chngs: e.target.value,
+                              capital_gains: e.target.value,
                             })
                           }
                         />
@@ -747,8 +921,15 @@ export default function ManageUserData() {
                         </Button>
                       </div>
                       <TradeBookTable
-                        onRefresh={() => fetchUserData(user._id)}
-                        data={userData?.tradebook}
+                        onRefresh={() => handleFetchTradebook(user._id)}
+                        data={tradebookData}
+                        onDelete={(item) => {
+                          try {
+                            deleteTradebook(item._id);
+                            toast.success("Successfully Removed");
+                            handleFetchTradebook(user._id);
+                          } catch (error) {}
+                        }}
                       />
                     </div>
 
@@ -917,9 +1098,16 @@ export default function ManageUserData() {
                         </Button>
                       </div>
                       <LedgerTable
-                        onRefresh={() => fetchUserData(user._id)}
+                        onRefresh={() => handleFetchLedger(user._id)}
                         ledgerdata={ledgerStatic}
-                        data={userData?.ledger}
+                        data={ledgerData}
+                        onDelete={(item) => {
+                          try {
+                            deleteLedger(item._id);
+                            toast.success("Successfully Removed");
+                            handleFetchLedger(user._id);
+                          } catch (error) {}
+                        }}
                       />
                     </div>
                   </div>

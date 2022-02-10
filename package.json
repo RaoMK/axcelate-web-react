@@ -1,7 +1,7 @@
 {
   "name": "axcelate.co.in",
   "version": "1.0.0",
-  "homepage": ".",
+  "private": true,
   "dependencies": {
     "@material-tailwind/react": "0.3.4",
     "@react-google-maps/api": "^2.1.1",

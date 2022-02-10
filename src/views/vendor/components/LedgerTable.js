@@ -51,7 +51,13 @@ import { useSelector } from "react-redux";
 //   },
 // ];
 
-export default function LedgerTable({ data, onRefresh, ledgerdata }) {
+export default function LedgerTable({
+  data,
+  onRefresh,
+  ledgerdata,
+  onEdit,
+  onDelete,
+}) {
   const currentUser = useSelector((state) => state.user.currentUser);
   const lableRef = useRef();
   return (
@@ -102,6 +108,13 @@ export default function LedgerTable({ data, onRefresh, ledgerdata }) {
                 <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-center">
                   Balance
                 </th>
+                {currentUser?.role === 1 ? (
+                  <th className="px-2 text-teal-500 align-middle border-b border-solid border-gray-200 py-3 text-sm whitespace-nowrap font-light text-left">
+                    Actions
+                  </th>
+                ) : (
+                  ""
+                )}
               </tr>
             </thead>
             <tbody>
@@ -129,6 +142,48 @@ export default function LedgerTable({ data, onRefresh, ledgerdata }) {
                     <td className="border-b border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
                       {item.balance}
                     </td>
+                    {currentUser?.role === 1 ? (
+                      <td className=" flex space-x-2 border-b cursor-pointer border-gray-200 align-middle font-light text-sm whitespace-nowrap px-2 py-4 text-center">
+                        {/* <Button
+                        className="self-center justify-self-center"
+                        color="green"
+                        buttonType="filled"
+                        size="regular"
+                        rounded={true}
+                        block={false}
+                        iconOnly={true}
+                        ripple="light"
+                        ref={lableRef}
+                        onClick={() => onEdit(item)}
+                      >
+                        <Icon name="edit" />
+                      </Button>
+
+                      <Tooltips placement="top" ref={lableRef}>
+                        <TooltipsContent>Edit</TooltipsContent>
+                      </Tooltips> */}
+
+                        <Button
+                          className="self-center justify-self-center"
+                          color="red"
+                          buttonType="filled"
+                          size="regular"
+                          rounded={true}
+                          block={false}
+                          iconOnly={true}
+                          ripple="light"
+                          ref={lableRef}
+                          onClick={() => onDelete(item)}
+                        >
+                          <Icon name="delete" />
+                        </Button>
+                        <Tooltips placement="top" ref={lableRef}>
+                          <TooltipsContent>Delete</TooltipsContent>
+                        </Tooltips>
+                      </td>
+                    ) : (
+                      ""
+                    )}
                   </tr>
                 ))
               )}
@@ -137,18 +192,18 @@ export default function LedgerTable({ data, onRefresh, ledgerdata }) {
           <div className=" mt-10 space-y-3 lg:w-1/2  ">
             <div className="flex justify-between">
               <h1>Total Opening Balance </h1>
-              <h1 className="font-bold">{ledgerdata.total_opening_balance}</h1>
+              <h1 className="font-bold">{ledgerdata?.total_opening_balance}</h1>
             </div>
             <div className="flex justify-between">
               <h1>Uncleared Ledger Marrgin </h1>
               <h1 className="font-bold">
                 {" "}
-                {ledgerdata.uncleared_ledger_margin}
+                {ledgerdata?.uncleared_ledger_margin}
               </h1>
             </div>
             <div className="flex justify-between">
               <h1>Cleared Avl Margin</h1>
-              <h1 className="font-bold"> {ledgerdata.cleared_avail_margin}</h1>
+              <h1 className="font-bold"> {ledgerdata?.cleared_avail_margin}</h1>
             </div>
           </div>
         </div>

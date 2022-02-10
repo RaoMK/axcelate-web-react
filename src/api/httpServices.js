@@ -1,6 +1,6 @@
 import axios from "axios";
 // import { baseURL } from "@env";
-export const baseURL = "http://localhost:8000";
+export const baseURL = "https://axcelate.co.in";
 
 axios.defaults.baseURL = baseURL;
 
