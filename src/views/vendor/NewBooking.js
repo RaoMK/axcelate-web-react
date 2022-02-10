@@ -18,14 +18,14 @@ export default function NewBooking() {
   const handleFetchTradebook = async (id) => {
     try {
       const { data } = await getTradebook(id);
-      console.log(data);
+
       setTradebook(data?.tradebook);
     } catch (error) {}
   };
   const handleFetchOrderbook = async (id) => {
     try {
       const { data } = await getOrderbook(id);
-      console.log(data);
+
       setOrderbook(data?.orderbook);
     } catch (error) {}
   };

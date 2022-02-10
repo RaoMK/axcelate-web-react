@@ -16,7 +16,7 @@ export default function VendorDashboard() {
   const handleFetchHolding = async (id) => {
     try {
       const { data } = await getHoldings(id);
-      console.log(data);
+
       setHolding(data?.holding);
     } catch (error) {}
   };

@@ -7,7 +7,7 @@ import { fetchUser } from "api";
 export const loginAction = (data) => async (dispatch) => {
   try {
     const response = await loginUser(data);
-    console.log(response);
+
     await setJWT(response?.data?.token);
   } catch (error) {
     console.log("eeerro", error);
@@ -15,7 +15,6 @@ export const loginAction = (data) => async (dispatch) => {
   }
 
   const userData = await getUserInfoFromJWT();
-  console.log("its user data", userData);
 
   dispatch({
     type: ActionTypes.LOGIN,
@@ -26,9 +25,8 @@ export const loginAction = (data) => async (dispatch) => {
 
 export const fetchUserAction = () => async (dispatch) => {
   const token = await getUserInfoFromJWT();
-  console.log("token", token);
+
   const { data } = await fetchUser(token?._id);
-  console.log("user", data);
 
   dispatch({
     type: ActionTypes.FETCH_CURRENTUSER,

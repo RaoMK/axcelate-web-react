@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 
 export default function SettingsForm() {
   const currentUser = useSelector((state) => state.user.currentUser);
-  console.log(currentUser, "currreeeennttr");
 
   const [profile, setProfile] = useState({
     name: currentUser?.name,

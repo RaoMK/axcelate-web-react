@@ -17,7 +17,6 @@ export default function Users() {
       const response = await fetchAlluser();
       setData(response.data);
       setLoading(false);
-      console.log(response.data, "its fetch response");
     } catch (error) {
       console.log(error);
     }

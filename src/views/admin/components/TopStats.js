@@ -7,7 +7,6 @@ function TopStats(props) {
   const dispatch = useDispatch();
   const data = useSelector((state) => state.client.userList);
   const loading = useSelector((state) => state.client.loading);
-  console.log("curre", data);
 
   useEffect(() => {}, []);
 

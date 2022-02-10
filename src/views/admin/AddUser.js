@@ -37,11 +37,9 @@ export default function AddUser() {
     if (profile.phone === "")
       return toast.error("Please Enter Valid Phone Number");
     if (profile.name === "") return toast.error("Please Enter Name");
-    console.log(profile);
 
     addUser(profile)
       .then((res) => {
-        console.log(res);
         toast.success("Login successful");
       })
       .catch((err) => console.log(err.json));
